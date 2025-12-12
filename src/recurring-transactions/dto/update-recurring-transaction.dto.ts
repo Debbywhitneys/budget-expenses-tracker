@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { RecurringTransactionDto } from './create-recurring-transaction.dto';
+import { CreateRecurringTransactionDto } from './create-recurring-transaction.dto';
 
 export class UpdateRecurringTransactionDto extends PartialType(
-  RecurringTransactionDto,
+  CreateRecurringTransactionDto,
 ) {}

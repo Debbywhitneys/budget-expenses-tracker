@@ -10,7 +10,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 
-export enum Budgettype {
+export enum BudgetType {
   weekly = 'weekly',
   monthly = 'monthly',
   yearly = 'yearly',
@@ -18,10 +18,10 @@ export enum Budgettype {
 
 @Entity('budgets')
 export class Budget {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'bigint', nullable: false, name: 'user_id' })
+  @Column({ type: 'int', nullable: false, name: 'user_id' })
   user_id: number;
 
   @Column({ type: 'bigint', nullable: true, name: 'category_id' })
@@ -37,9 +37,9 @@ export class Budget {
     type: 'varchar',
     length: 50,
     nullable: false,
-    enum: Budgettype,
+    enum: BudgetType,
   })
-  period: Budgettype;
+  period: BudgetType;
 
   @Column({ type: 'datetime', nullable: false, name: 'start_date' })
   startDate: Date;
@@ -59,15 +59,15 @@ export class Budget {
   @Column({ type: 'bit', nullable: false, default: 1, name: 'is_active' })
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.budgets)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
   @ManyToOne(() => Category, (category) => category.budgets)

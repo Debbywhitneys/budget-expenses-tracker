@@ -1,16 +1,17 @@
 import {
-  IsString,
   IsNotEmpty,
   IsNumber,
   IsBoolean,
+  IsDate,
   Min,
   IsOptional,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateRecurringSplitDto {
   @IsNumber()
   @IsOptional()
-  groupExpenseId?: number;
+  group_expense_id?: number;
 
   @IsNumber()
   @IsNotEmpty()
@@ -30,7 +31,8 @@ export class CreateRecurringSplitDto {
   @IsOptional()
   isSettled?: boolean;
 
-  @IsString()
+  @IsDate()
   @IsOptional()
+  @Type(() => Date)
   settled_at?: Date;
 }

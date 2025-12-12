@@ -1,45 +1,51 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Patch,
   Param,
-  Delete,
+  Body,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ExpenseSplitsService } from './expense-splits.service';
-import { CreateRecurringSplitDto } from './dto/create-expense-split.dto';
-import { UpdateExpenseSplitDto } from './dto/update-expense-split.dto';
+import { AccessTokenGuard } from '../auth/guards/access-token.guards';
 
-@Controller('expense-splits')
+@Controller('splits')
+@UseGuards(AccessTokenGuard)
 export class ExpenseSplitsController {
-  constructor(private readonly expenseSplitsService: ExpenseSplitsService) {}
-
-  @Post()
-  create(@Body() CreateRecurringSplitDto: CreateRecurringSplitDto) {
-    return this.expenseSplitsService.create(CreateRecurringSplitDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.expenseSplitsService.findAll();
-  }
+  constructor(private readonly splitsService: ExpenseSplitsService) {}
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.expenseSplitsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.splitsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateExpenseSplitDto: UpdateExpenseSplitDto,
+  @Get('expense/:expenseId')
+  findByExpense(@Param('expenseId', ParseIntPipe) expenseId: number) {
+    return this.splitsService.findByExpense(expenseId);
+  }
+
+  @Get('user/:userId/unsettled')
+  findUnsettledByUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.splitsService.findUnsettledByUser(userId);
+  }
+
+  @Get('user/:userId/balance')
+  getUserBalance(@Param('userId', ParseIntPipe) userId: number) {
+    return this.splitsService.getUserBalance(userId);
+  }
+
+  @Patch(':id/settle')
+  markAsSettled(@Param('id', ParseIntPipe) id: number) {
+    return this.splitsService.markAsSettled(id);
+  }
+
+  @Patch(':id/partial-payment')
+  makePartialPayment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { amount: number },
   ) {
-    return this.expenseSplitsService.update(+id, updateExpenseSplitDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.expenseSplitsService.remove(+id);
+    return this.splitsService.makePartialPayment(id, body.amount);
   }
 }

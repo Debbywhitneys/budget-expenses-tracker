@@ -1,0 +1,183 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class InitialMigration1765010941989 implements MigrationInterface {
+  name = 'InitialMigration1765010941989';
+
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `CREATE TABLE "accounts" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "name" varchar(100) NOT NULL, "type" varchar(50) CONSTRAINT CHK_3c050ab4f240431c78997eb5ae_ENUM CHECK(type IN ('credit_card','cash','bank')) NOT NULL, "currency" varchar(10) NOT NULL, "initial_balance" decimal(19,2) NOT NULL, "current_balance" decimal(19,2) NOT NULL, "institution_name" varchar(100), "account_number" varchar(50), "icon" varchar(50), "color" varchar(50), "is_active" bit NOT NULL CONSTRAINT "DF_7a39383000d31e5fa367c58abb8" DEFAULT 1, "createdAt" datetime NOT NULL CONSTRAINT "DF_c11e322ce95c916babab8f40ea1" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_1cebb811cec1ee03b62b3c7c752" DEFAULT getdate(), CONSTRAINT "PK_5a7a02c20412299d198e097a8fe" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "transactions" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "account_id" int, "category_id" int, "type" varchar(50) CONSTRAINT CHK_851df80ee66fe69580800989c8_ENUM CHECK(type IN ('income','expense','transfer')) NOT NULL, "amount" decimal(19,2) NOT NULL, "description" varchar(1000), "is_recurring" bit, "location" varchar(255), "receipt_url" varchar(255), "tags" varchar(255), "notes" text, "start_date" datetime, "end_date" datetime, "createdAt" datetime NOT NULL CONSTRAINT "DF_e744417ceb0b530285c08f38655" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_a8b845c586db06b6558276e0bf6" DEFAULT getdate(), CONSTRAINT "PK_a219afd8dd77ed80f5a862f1db9" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "budgets" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "category_id" int, "name" varchar(100) NOT NULL, "amount" decimal(19,2) NOT NULL, "period" varchar(50) CONSTRAINT CHK_f1c804f0f9f76c41c0fe56f3a8_ENUM CHECK(period IN ('weekly','monthly','yearly')) NOT NULL, "start_date" datetime NOT NULL, "end_date" datetime, "alert_threshold" decimal(5,2), "is_active" bit NOT NULL CONSTRAINT "DF_e23e36290ab60a34ce2527dd765" DEFAULT 1, "createdAt" datetime NOT NULL CONSTRAINT "DF_c10a3c7798c9351b83bb0b7554c" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_7e0967632da1b1252c41370204f" DEFAULT getdate(), CONSTRAINT "PK_9c8a51748f82387644b773da482" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "categories" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "name" varchar(100) NOT NULL, "type" varchar(255) CONSTRAINT CHK_a02e4e72b8aafb77fc3f22efb9_ENUM CHECK(type IN ('income','expense')) NOT NULL, "icon" varchar(100), "currency" varchar(10) NOT NULL, "color" varchar(50), "isDefault" bit, "is_active" bit NOT NULL CONSTRAINT "DF_083b4657d537e819d86961f4aa5" DEFAULT 1, "createdAt" datetime NOT NULL CONSTRAINT "DF_43bf08375ae7bfae7d55bc3a0cc" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_12ab873251814ad54ddb41d45e4" DEFAULT getdate(), CONSTRAINT "PK_24dbc6126a28ff948da33e97d3b" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "financial_goals" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "description" varchar(1000) NOT NULL, "target_amount" decimal(19,2) NOT NULL, "current_amount" decimal(19,2), "deadline" datetime, "category" varchar(100), "financialGoalType" varchar(50) CONSTRAINT CHK_5fab778aa09b7cfd1bc84aca06_ENUM CHECK(financialGoalType IN ('emergency_fund','vacation','purchase','debt_payoff','retirement','other')), "priority" varchar(50) CONSTRAINT CHK_859df3e30015063a0a0e493370_ENUM CHECK(priority IN ('low','medium','high')), "is_achieved" bit NOT NULL CONSTRAINT "DF_7adb5e87f6ce9c5ecb3d18c27e5" DEFAULT 0, "createdAt" datetime NOT NULL CONSTRAINT "DF_e2ff8d1b8468e04d4cdfa346477" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_1e499dc73434ac9da753f8fda45" DEFAULT getdate(), CONSTRAINT "PK_5188d16047d02cb44fb9aa0a097" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "notifications" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "type" varchar(100) CONSTRAINT CHK_845e37f8b2d6d4acd571bb2312_ENUM CHECK(type IN ('budget_alert','bill_reminder','goal_milestone','settlement_request','group_expense_created')), "message" varchar(2000), "title" varchar(255), "action_url" varchar(500), "is_read" bit NOT NULL CONSTRAINT "DF_f12148ce379462ebbb4d06cc136" DEFAULT 0, "created_at" datetime NOT NULL CONSTRAINT "DF_77ee7b06d6f802000c0846f3a56" DEFAULT getdate(), "read_at" datetime, CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "recurring_splits" ("id" int NOT NULL IDENTITY(1,1), "group_expense_id" int, "user_id" int NOT NULL, "amount_owed" decimal(19,2) NOT NULL, "amount_paid" decimal(19,2), "is_settled" bit NOT NULL CONSTRAINT "DF_4a1313380f57704a697397b34d5" DEFAULT 0, "settled_at" datetime, "created_at" datetime NOT NULL CONSTRAINT "DF_76776bcfbc4e31cb55fa80dea6c" DEFAULT getdate(), "updated_at" datetime NOT NULL CONSTRAINT "DF_f2dbae40e398da3fefe8aa87533" DEFAULT getdate(), CONSTRAINT "PK_6323a54fc7177c0ca1335567321" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "group_expenses" ("id" int NOT NULL IDENTITY(1,1), "group_id" int NOT NULL, "paid_by_id" int NOT NULL, "name" varchar(100) NOT NULL, "description" varchar(1000), "total_amount" decimal(19,2) NOT NULL, "currency" varchar(10) NOT NULL, "category_id" bigint, "expense_date" datetime NOT NULL, "receipt_url" varchar(1000), "notes" varchar(2000), "split_method" varchar(50) CONSTRAINT CHK_72e9f8556a0ddeefceb008c0ca_ENUM CHECK(split_method IN ('equal','percentage','exact_amounts','shares')) NOT NULL, "is_settled" bit NOT NULL CONSTRAINT "DF_ec539a67aa00a67f87c740bf59f" DEFAULT 0, "createdAt" datetime NOT NULL CONSTRAINT "DF_a2207451cd360623265e9ae8371" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_55e38b7bb8d8a2032141ed0e536" DEFAULT getdate(), CONSTRAINT "PK_5f758da134cc01c6a31cf3cd000" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "settlements" ("id" int NOT NULL IDENTITY(1,1), "group_id" int NOT NULL, "payer_id" int NOT NULL, "amount" decimal(19,2) NOT NULL, "payment_method" varchar(100), "reference_number" varchar(255), "notes" varchar(2000), "date" datetime NOT NULL, "created_at" datetime NOT NULL CONSTRAINT "DF_ac203edcf68a9fc66ff2bd3160f" DEFAULT getdate(), "updated_at" datetime NOT NULL CONSTRAINT "DF_77980a2398ebad286f4e73d0c8b" DEFAULT getdate(), CONSTRAINT "PK_5f523ce152b84e818bff9467aab" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "groups" ("id" int NOT NULL IDENTITY(1,1), "name" varchar(100) NOT NULL, "description" varchar(1000), "groupType" varchar(50) CONSTRAINT CHK_39c396e62db8d508fe190619db_ENUM CHECK(groupType IN ('couples','organizations','family','friends','roommates','others')) NOT NULL, "image_url" varchar(500), "is_active" bit NOT NULL CONSTRAINT "DF_ed580a627f0d82d392897b4bca4" DEFAULT 1, "created_at" datetime NOT NULL CONSTRAINT "DF_2c77c18a08d4f88da652075f0a0" DEFAULT getdate(), "updated_at" datetime NOT NULL CONSTRAINT "DF_8d728e878f28542b6fb424afd62" DEFAULT getdate(), CONSTRAINT "PK_659d1483316afb28afd3a90646e" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "group_members" ("id" int NOT NULL IDENTITY(1,1), "group_id" int NOT NULL, "user_id" int NOT NULL, "role" varchar(50) CONSTRAINT CHK_ccca14b768c60434b48105b0f0_ENUM CHECK(role IN ('admin','member')) NOT NULL CONSTRAINT "DF_97a7a53cf1f15c3f45e634f116c" DEFAULT 'member', "joined_at" datetime NOT NULL, "is_active" bit NOT NULL CONSTRAINT "DF_7fbc70a7af2c156dd17fe6c6851" DEFAULT 1, "createdAt" datetime NOT NULL CONSTRAINT "DF_573aea087d427f845d8f623b401" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_a9f97def0339c43ebe670b9f307" DEFAULT getdate(), CONSTRAINT "PK_86446139b2c96bfd0f3b8638852" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "recurring_transactions" ("id" int NOT NULL IDENTITY(1,1), "user_id" int NOT NULL, "amount" decimal NOT NULL, "type" varchar(20) CONSTRAINT CHK_a675736aa8eb612903eaea460f_ENUM CHECK(type IN ('income','expense')) NOT NULL, "description" nvarchar(255), "frequency" varchar(50) CONSTRAINT CHK_77ee5164fd60937eacecd51b03_ENUM CHECK(frequency IN ('daily','weekly','monthly','yearly')) NOT NULL, "startDate" datetime NOT NULL, "endDate" datetime, "nextOccurrenceDate" datetime NOT NULL, "isActive" bit NOT NULL CONSTRAINT "DF_98d65dd2c506c7ee8b0b885564f" DEFAULT 1, "account_id" int NOT NULL, "category_id" int NOT NULL, "created_at" datetime NOT NULL CONSTRAINT "DF_f002bf1ba87b120b4f0f5543b16" DEFAULT getdate(), "updated_at" datetime NOT NULL CONSTRAINT "DF_1356bb571e90d4ea1d4b20f4990" DEFAULT getdate(), CONSTRAINT "PK_6485db3243762a54992dc0ce3b7" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "users" ("user_id" int NOT NULL IDENTITY(1,1), "email" varchar(255) NOT NULL, "passwordHash" varchar(255) NOT NULL, "fullName" varchar(255) NOT NULL, "phoneNumber" varchar(50), "userRole" varchar(255) CONSTRAINT CHK_be1a92750385cfed348505c49e_ENUM CHECK(userRole IN ('system_admin','user')) NOT NULL CONSTRAINT "DF_9acf5b718fdc83bc4f6d6b9e869" DEFAULT 'user', "hashedRefreshedToken" varchar(255), "profilePictureUrl" varchar(500), "currency" varchar(10), "timezone" varchar(100), "createdAt" datetime NOT NULL CONSTRAINT "DF_204e9b624861ff4a5b268192101" DEFAULT getdate(), "updatedAt" datetime NOT NULL CONSTRAINT "DF_0f5cbe00928ba4489cc7312573b" DEFAULT getdate(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_96aac72f1574b88752e9fb00089" PRIMARY KEY ("user_id"))`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "accounts" ADD CONSTRAINT "FK_3000dad1da61b29953f07476324" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_e9acc6efa76de013e8c1553ed2b" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_49c0d6e8ba4bfb5582000d851f0" FOREIGN KEY ("account_id") REFERENCES "accounts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_c9e41213ca42d50132ed7ab2b0f" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "budgets" ADD CONSTRAINT "FK_5d25d8bbd6c209261dfe04558f1" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "budgets" ADD CONSTRAINT "FK_4bb589bf6db49e8c1fd6af05f49" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "categories" ADD CONSTRAINT "FK_2296b7fe012d95646fa41921c8b" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "financial_goals" ADD CONSTRAINT "FK_50caf1e22fbb90b226bfd7d94e6" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "notifications" ADD CONSTRAINT "FK_9a8a82462cab47c73d25f49261f" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_splits" ADD CONSTRAINT "FK_56f600319ac1dcf470ba388ad7c" FOREIGN KEY ("group_expense_id") REFERENCES "group_expenses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_splits" ADD CONSTRAINT "FK_9b734556a922701ad62d216eaa3" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_expenses" ADD CONSTRAINT "FK_27ed3857d27b4c98eaeaf7fff31" FOREIGN KEY ("group_id") REFERENCES "groups"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_expenses" ADD CONSTRAINT "FK_9599ef002ce8739f6e72f03772b" FOREIGN KEY ("paid_by_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "settlements" ADD CONSTRAINT "FK_6c8f4669439022b4a709819e975" FOREIGN KEY ("group_id") REFERENCES "groups"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "settlements" ADD CONSTRAINT "FK_724c20b87fea139496395178cc8" FOREIGN KEY ("payer_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_members" ADD CONSTRAINT "FK_2c840df5db52dc6b4a1b0b69c6e" FOREIGN KEY ("group_id") REFERENCES "groups"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_members" ADD CONSTRAINT "FK_20a555b299f75843aa53ff8b0ee" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" ADD CONSTRAINT "FK_d78f3002f99b0f15a3797201c92" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" ADD CONSTRAINT "FK_49ccbdbeef159c1c12b1931a5b7" FOREIGN KEY ("account_id") REFERENCES "accounts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" ADD CONSTRAINT "FK_eb623e5e626cf95fd42710adf25" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" DROP CONSTRAINT "FK_eb623e5e626cf95fd42710adf25"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" DROP CONSTRAINT "FK_49ccbdbeef159c1c12b1931a5b7"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_transactions" DROP CONSTRAINT "FK_d78f3002f99b0f15a3797201c92"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_members" DROP CONSTRAINT "FK_20a555b299f75843aa53ff8b0ee"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_members" DROP CONSTRAINT "FK_2c840df5db52dc6b4a1b0b69c6e"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "settlements" DROP CONSTRAINT "FK_724c20b87fea139496395178cc8"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "settlements" DROP CONSTRAINT "FK_6c8f4669439022b4a709819e975"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_expenses" DROP CONSTRAINT "FK_9599ef002ce8739f6e72f03772b"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "group_expenses" DROP CONSTRAINT "FK_27ed3857d27b4c98eaeaf7fff31"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_splits" DROP CONSTRAINT "FK_9b734556a922701ad62d216eaa3"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "recurring_splits" DROP CONSTRAINT "FK_56f600319ac1dcf470ba388ad7c"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "notifications" DROP CONSTRAINT "FK_9a8a82462cab47c73d25f49261f"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "financial_goals" DROP CONSTRAINT "FK_50caf1e22fbb90b226bfd7d94e6"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "categories" DROP CONSTRAINT "FK_2296b7fe012d95646fa41921c8b"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "budgets" DROP CONSTRAINT "FK_4bb589bf6db49e8c1fd6af05f49"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "budgets" DROP CONSTRAINT "FK_5d25d8bbd6c209261dfe04558f1"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" DROP CONSTRAINT "FK_c9e41213ca42d50132ed7ab2b0f"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" DROP CONSTRAINT "FK_49c0d6e8ba4bfb5582000d851f0"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" DROP CONSTRAINT "FK_e9acc6efa76de013e8c1553ed2b"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "accounts" DROP CONSTRAINT "FK_3000dad1da61b29953f07476324"`,
+    );
+    await queryRunner.query(`DROP TABLE "users"`);
+    await queryRunner.query(`DROP TABLE "recurring_transactions"`);
+    await queryRunner.query(`DROP TABLE "group_members"`);
+    await queryRunner.query(`DROP TABLE "groups"`);
+    await queryRunner.query(`DROP TABLE "settlements"`);
+    await queryRunner.query(`DROP TABLE "group_expenses"`);
+    await queryRunner.query(`DROP TABLE "recurring_splits"`);
+    await queryRunner.query(`DROP TABLE "notifications"`);
+    await queryRunner.query(`DROP TABLE "financial_goals"`);
+    await queryRunner.query(`DROP TABLE "categories"`);
+    await queryRunner.query(`DROP TABLE "budgets"`);
+    await queryRunner.query(`DROP TABLE "transactions"`);
+    await queryRunner.query(`DROP TABLE "accounts"`);
+  }
+}

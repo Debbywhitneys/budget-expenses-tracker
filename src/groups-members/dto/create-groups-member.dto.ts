@@ -7,9 +7,10 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { role } from '../entities/groups-member.entity';
 
 export class CreateGroupMemberDto {
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   group_id: number;
 
@@ -19,7 +20,7 @@ export class CreateGroupMemberDto {
 
   @IsString()
   @IsNotEmpty()
-  role: string;
+  role: role;
 
   @IsDate()
   @IsNotEmpty()

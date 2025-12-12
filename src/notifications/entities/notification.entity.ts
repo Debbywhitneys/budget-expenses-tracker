@@ -13,11 +13,12 @@ export enum NotificationType {
   bill_reminder = 'bill_reminder',
   goal_milestone = 'goal_milestone',
   settlement_request = 'settlement_request',
+  group_expense_created = 'group_expense_created',
 }
 
 @Entity('notifications')
 export class Notification {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'bigint', nullable: false, name: 'user_id' })
@@ -34,7 +35,18 @@ export class Notification {
   @Column({ type: 'varchar', length: 2000, nullable: true })
   message: string;
 
-  @Column({ type: 'bit', nullable: false, default: 0, name: 'is_read' })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  title: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true, name: 'action_url' })
+  action_url: string;
+
+  @Column({
+    type: 'bit',
+    nullable: false,
+    default: 0,
+    name: 'is_read',
+  })
   isRead: boolean;
 
   @CreateDateColumn({ type: 'datetime', name: 'created_at' })
@@ -45,6 +57,6 @@ export class Notification {
 
   // Relationships
   @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 }

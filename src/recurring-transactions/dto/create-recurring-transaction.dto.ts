@@ -6,29 +6,23 @@ import {
   IsDate,
   IsOptional,
   IsEnum,
+  IsPositive,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { recurringTransactionType } from '../entities/recurring-transaction.entity';
 import { frequency } from '../entities/recurring-transaction.entity';
 
-export class RecurringTransactionDto {
+export class CreateRecurringTransactionDto {
+  @IsNumber()
+  @IsNotEmpty()
+  user_id: number;
+
   @IsNotEmpty()
   @IsNumber()
-  id: number;
+  @IsPositive()
+  amount: number;
 
   @IsNotEmpty()
-  @IsString()
-  user_id: string;
-
-  @IsOptional()
-  @IsString()
-  amount?: string;
-
-  @IsOptional()
-  @IsNumber()
-  category_id?: number;
-
-  @IsNotEmpty()
-  @IsString()
   @IsEnum(recurringTransactionType)
   type: recurringTransactionType;
 
@@ -37,31 +31,33 @@ export class RecurringTransactionDto {
   description?: string;
 
   @IsNotEmpty()
-  @IsString()
   @IsEnum(frequency)
-  frequency: frequency; // daily | weekly | monthly | yearly
+  frequency: frequency;
 
   @IsNotEmpty()
   @IsDate()
+  @Type(() => Date)
   startDate: Date;
 
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   endDate?: Date;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsDate()
-  nextOccurrenceDate?: Date;
+  @Type(() => Date)
+  nextOccurrenceDate: Date;
 
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 
   @IsNotEmpty()
-  @IsDate()
-  createdAt: Date;
+  @IsNumber()
+  account_id: number;
 
   @IsNotEmpty()
-  @IsDate()
-  updatedAt: Date;
+  @IsNumber()
+  category_id: number;
 }

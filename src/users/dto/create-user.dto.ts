@@ -1,37 +1,30 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { userRole } from '../entities/user.entity';
 
 export class CreateUserDto {
-  @IsString()
-  @IsNotEmpty()
-  user_id: number;
-
   @IsString()
   @IsNotEmpty()
   email: string;
 
   @IsString()
   @IsNotEmpty()
-  username: string;
-
-  @IsString()
-  @IsNotEmpty()
   fullName: string;
 
-  @IsOptional()
-  @IsString()
-  passwordHash?: string;
-
   @IsString()
   @IsNotEmpty()
-  phoneNumber: string;
+  password: string;
 
   @IsString()
   @IsOptional()
-  profile_picture_url: string;
+  phoneNumber?: string;
 
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  isSystemAdmin?: boolean;
+  profilePictureUrl?: string;
+
+  @IsEnum(userRole)
+  @IsOptional()
+  userRole?: userRole;
 
   @IsString()
   @IsOptional()
@@ -40,12 +33,4 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   timezone?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  createdAt: Date;
-
-  @IsString()
-  @IsNotEmpty()
-  updatedAt: Date;
 }

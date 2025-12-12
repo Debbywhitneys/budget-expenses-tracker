@@ -1,18 +1,13 @@
 import {
   IsString,
   IsNotEmpty,
-  IsBoolean,
   IsOptional,
-  IsUrl,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 import { GroupType } from '../entities/group.entity';
 
 export class CreateGroupDto {
-  @IsString()
-  @IsNotEmpty()
-  group_id: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -23,11 +18,10 @@ export class CreateGroupDto {
 
   @IsEnum(GroupType)
   @IsNotEmpty()
-  GroupType: GroupType;
+  groupType: GroupType;
 
   @IsString()
   @IsOptional()
-  @IsUrl()
   imageUrl?: string;
 
   @IsBoolean()

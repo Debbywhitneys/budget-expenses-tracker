@@ -28,7 +28,7 @@ export class RecurringTransaction {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'bigint', nullable: false })
+  @Column({ type: 'bigint', nullable: false, name: 'user_id' })
   user_id: number;
 
   @Column({ type: 'decimal', nullable: false })
@@ -57,16 +57,22 @@ export class RecurringTransaction {
   @Column({ type: 'datetime' })
   nextOccurrenceDate: Date;
 
-  @Column({ type: 'bit', default: true })
+  @Column({ type: 'bit', default: 1 })
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @Column({ type: 'bigint', nullable: false, name: 'account_id' })
+  account_id: number;
+
+  @Column({ type: 'bigint', nullable: false, name: 'category_id' })
+  category_id: number;
+
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.transactions)
+  @ManyToOne(() => User, (user) => user.recurringTransactions)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 

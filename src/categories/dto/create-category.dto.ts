@@ -1,6 +1,7 @@
 import {
   IsString,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsBoolean,
   IsEnum,
@@ -8,9 +9,9 @@ import {
 import { CategoryType } from '../entities/category.entity';
 
 export class CreateCategoryDto {
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  user_id: string;
+  user_id: number;
 
   @IsString()
   @IsNotEmpty()

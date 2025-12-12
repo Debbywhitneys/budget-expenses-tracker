@@ -21,18 +21,14 @@ export enum split_method {
 
 @Entity('group_expenses')
 export class GroupExpense {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'int',
-    nullable: false,
-    name: 'group_id',
-  })
+  @Column({ type: 'bigint', nullable: false, name: 'group_id' })
   group_id: number;
 
-  @Column({ type: 'bigint', nullable: false, name: 'paid_by_jf' })
-  paid_id: number;
+  @Column({ type: 'int', nullable: false, name: 'paid_by_id' })
+  paid_by_id: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
@@ -69,10 +65,10 @@ export class GroupExpense {
   @Column({ type: 'bit', nullable: false, default: 0, name: 'is_settled' })
   isSettled: boolean;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
@@ -80,8 +76,8 @@ export class GroupExpense {
   @JoinColumn({ name: 'group_id', referencedColumnName: 'id' })
   group: Group;
 
-  @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'paid_by', referencedColumnName: 'id' })
+  @ManyToOne(() => User, (user) => user.groupExpenses)
+  @JoinColumn({ name: 'paid_by_id', referencedColumnName: 'user_id' })
   paidBy: User;
 
   @OneToMany(() => RecurringSplit, (split) => split.groupExpense)

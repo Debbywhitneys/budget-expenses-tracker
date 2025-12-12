@@ -10,10 +10,9 @@ import {
 import { Type } from 'class-transformer';
 
 export class CreateSettlementDto {
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  @MaxLength(255)
-  group_id: string;
+  group_id: number;
 
   @IsNumber()
   @IsNotEmpty()

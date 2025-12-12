@@ -9,7 +9,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { User, userRole } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
@@ -20,9 +20,12 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
+  // =====================================
+  // CREATE USER
+  // =====================================
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      if (!createUserDto.email || !createUserDto.passwordHash) {
+      if (!createUserDto.email || !createUserDto.password) {
         throw new BadRequestException('Email and password are required');
       }
 
@@ -34,7 +37,7 @@ export class UsersService {
         throw new ConflictException('User with this email already exists');
       }
 
-      const hashedPassword = await bcrypt.hash(createUserDto.passwordHash, 10);
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
       const user = this.userRepository.create({
         fullName: createUserDto.fullName,
@@ -42,32 +45,29 @@ export class UsersService {
         phoneNumber: createUserDto.phoneNumber,
         currency: createUserDto.currency || 'USD',
         timezone: createUserDto.timezone || 'UTC',
-        // Add system admin flag
-        isSystemAdmin: createUserDto.isSystemAdmin || false,
+        passwordHash: hashedPassword,
+        userRole: createUserDto.userRole || userRole.USER,
+        profilePictureUrl: createUserDto.profilePictureUrl,
       });
 
-      const savedUser = await this.userRepository.save(user);
-
-      return savedUser;
+      return await this.userRepository.save(user);
     } catch (error) {
-      if (
-        error instanceof ConflictException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
+      const message = error instanceof Error ? error.message : 'Unknown error';
       throw new HttpException(
-        `Failed to create user: ${error.message}`,
+        `Failed to create user: ${message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // =====================================
+  // FIND ALL USERS
+  // =====================================
   async findAll(): Promise<User[]> {
     try {
-      return await this.userRepository.find({
+      const users = await this.userRepository.find({
         select: {
-          id: true,
+          user_id: true,
           fullName: true,
           email: true,
           phoneNumber: true,
@@ -75,13 +75,14 @@ export class UsersService {
           timezone: true,
           createdAt: true,
           updatedAt: true,
-          isSystemAdmin: true, // include system admin flag
+          userRole: true,
+          profilePictureUrl: true,
         },
-        order: {
-          createdAt: 'DESC',
-        },
+        order: { createdAt: 'DESC' },
       });
-    } catch (error) {
+
+      return users;
+    } catch {
       throw new HttpException(
         'Error finding users',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -89,12 +90,15 @@ export class UsersService {
     }
   }
 
+  // =====================================
+  // FIND ONE BY ID
+  // =====================================
   async findOne(id: number): Promise<User> {
     try {
       const user = await this.userRepository.findOne({
-        where: { id },
+        where: { user_id: id },
         select: {
-          id: true,
+          user_id: true,
           fullName: true,
           email: true,
           phoneNumber: true,
@@ -102,13 +106,12 @@ export class UsersService {
           timezone: true,
           createdAt: true,
           updatedAt: true,
-          isSystemAdmin: true, // include system admin flag
+          userRole: true,
+          profilePictureUrl: true,
         },
       });
 
-      if (!user) {
-        throw new NotFoundException(`User with id ${id} not found`);
-      }
+      if (!user) throw new NotFoundException(`User with id ${id} not found`);
 
       return user;
     } catch (error) {
@@ -120,95 +123,116 @@ export class UsersService {
     }
   }
 
+  // =====================================
+  // FIND BY EMAIL
+  // =====================================
   async findByEmail(email: string): Promise<User | null> {
     try {
       return await this.userRepository.findOne({
         where: { email: email.toLowerCase() },
       });
-    } catch (error) {
+    } catch {
       throw new HttpException(
-        'Error while finding user by email',
+        'Error finding user by email',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // =====================================
+  // UPDATE USER
+  // =====================================
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     try {
-      const existingUser = await this.userRepository.findOne({ where: { id } });
-
-      if (!existingUser)
+      const existing = await this.userRepository.findOne({
+        where: { user_id: id },
+      });
+      if (!existing)
         throw new NotFoundException(`User with id ${id} not found`);
 
-      if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
+      // Validate email update
+      if (updateUserDto.email && updateUserDto.email !== existing.email) {
         const emailExists = await this.userRepository.findOne({
           where: { email: updateUserDto.email.toLowerCase() },
         });
-
         if (emailExists) throw new ConflictException('Email already in use');
 
         updateUserDto.email = updateUserDto.email.toLowerCase();
       }
 
-      if (updateUserDto.passwordHash) {
-        updateUserDto.passwordHash = await bcrypt.hash(
-          updateUserDto.passwordHash,
-          10,
-        );
+      // Prepare update data
+      const { password, ...updateDataWithoutPassword } = updateUserDto;
+      const updateData: Partial<User> & { passwordHash?: string } = {
+        ...updateDataWithoutPassword,
+      };
+
+      // Hash password if being changed
+      if (password) {
+        updateData.passwordHash = await bcrypt.hash(password, 10);
       }
 
-      // Update system admin only if provided
-      if (updateUserDto.isSystemAdmin !== undefined) {
-        updateUserDto.isSystemAdmin = updateUserDto.isSystemAdmin;
+      // Role update
+      if (updateUserDto.userRole) {
+        // validate role value before updating
+        if (!Object.values(userRole).includes(updateUserDto.userRole)) {
+          throw new BadRequestException('Invalid user role');
+        }
       }
 
-      await this.userRepository.update(id, updateUserDto);
+      await this.userRepository.update({ user_id: id }, updateData);
 
-      const updatedUser = await this.findOne(id);
-      return updatedUser;
+      return await this.findOne(id);
     } catch (error) {
       if (
         error instanceof NotFoundException ||
         error instanceof ConflictException
-      )
+      ) {
         throw error;
+      }
       throw new HttpException(
-        'Error while updating the user',
+        'Error while updating user',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // =====================================
+  // DELETE USER
+  // =====================================
   async remove(id: number): Promise<{ message: string }> {
     try {
-      const existingUser = await this.userRepository.findOne({ where: { id } });
-      if (!existingUser)
+      const existing = await this.userRepository.findOne({
+        where: { user_id: id },
+      });
+      if (!existing)
         throw new NotFoundException(`User with id ${id} not found`);
 
-      await this.userRepository.delete(id);
+      await this.userRepository.delete({ user_id: id });
+
       return { message: 'User deleted successfully' };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new HttpException(
-        'Error deleting the user',
+        'Error deleting user',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // =====================================
+  // CREDENTIAL VALIDATION
+  // =====================================
   async validateCredentials(
     email: string,
-    password: string,
+    passwordHash: string,
   ): Promise<User | null> {
     try {
       const user = await this.findByEmail(email);
       if (!user) return null;
 
-      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-      if (!isPasswordValid) return null;
-
-      return user;
-    } catch (error) {
+      const isValid = await bcrypt.compare(passwordHash, user.passwordHash);
+      return isValid ? user : null;
+    } catch {
       throw new HttpException(
         'Error validating credentials',
         HttpStatus.INTERNAL_SERVER_ERROR,

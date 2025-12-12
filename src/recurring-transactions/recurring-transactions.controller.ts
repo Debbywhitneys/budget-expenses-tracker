@@ -1,50 +1,45 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Post, Get, Patch, Param, Body, Req } from '@nestjs/common';
 import { RecurringTransactionsService } from './recurring-transactions.service';
-import { RecurringTransactionDto } from './dto/create-recurring-transaction.dto';
-import { UpdateRecurringTransactionDto } from './dto/update-recurring-transaction.dto';
 
 @Controller('recurring-transactions')
 export class RecurringTransactionsController {
   constructor(
-    private readonly recurringTransactionsService: RecurringTransactionsService,
+    private readonly recurringService: RecurringTransactionsService,
   ) {}
 
+  // ------------------------------
+  // Create recurring transaction
+  // ------------------------------
   @Post()
-  create(@Body() RecurringTransactionDto: RecurringTransactionDto) {
-    return this.recurringTransactionsService.create(RecurringTransactionDto);
+  async create(@Req() req, @Body() createDto: any) {
+    const userId = req.user.user_id; // from JWT
+    return this.recurringService.create(userId, createDto);
   }
 
+  // ---------------------------------
+  // Get all recurring for logged user
+  // ---------------------------------
   @Get()
-  findAll() {
-    return this.recurringTransactionsService.findAll();
+  async findAll(@Req() req) {
+    const userId = req.user.user_id;
+    return this.recurringService.findAll(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recurringTransactionsService.findOne(+id);
+  // -------------------------------------
+  // Get upcoming (next 30 days)
+  // -------------------------------------
+  @Get('upcoming')
+  async upcoming(@Req() req) {
+    const userId = req.user.user_id;
+    return this.recurringService.getUpcoming(userId);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateRecurringTransactionDto: UpdateRecurringTransactionDto,
-  ) {
-    return this.recurringTransactionsService.update(
-      +id,
-      updateRecurringTransactionDto,
-    );
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recurringTransactionsService.remove(+id);
+  // -------------------------------------
+  // Skip next occurrence for one recurring
+  // -------------------------------------
+  @Patch(':id/skip')
+  async skip(@Req() req, @Param('id') id: number) {
+    const userId = req.user.user_id;
+    return this.recurringService.skipOccurrence(userId, id);
   }
 }

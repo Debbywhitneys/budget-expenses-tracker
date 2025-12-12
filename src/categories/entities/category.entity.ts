@@ -19,16 +19,11 @@ export enum CategoryType {
 
 @Entity('categories')
 export class Category {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: false,
-    name: 'user_uid_jf',
-  })
-  user_id: string;
+  @Column({ type: 'int', nullable: false, name: 'user_id' })
+  user_id: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
@@ -51,15 +46,15 @@ export class Category {
   @Column({ type: 'bit', nullable: false, default: 1, name: 'is_active' })
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.categories)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
   @OneToMany(() => Transaction, (transaction) => transaction.category)

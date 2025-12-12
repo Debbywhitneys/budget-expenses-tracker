@@ -1,45 +1,47 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Patch,
   Param,
   Delete,
+  Query,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { NotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { AccessTokenGuard } from '../auth/guards/access-token.guards';
 
 @Controller('notifications')
+@UseGuards(AccessTokenGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Post()
-  create(@Body() createNotificationDto: NotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
-  }
-
   @Get()
-  findAll() {
-    return this.notificationsService.findAll();
+  findAll(@Request() req, @Query('unread_only') unread_only?: string) {
+    return this.notificationsService.findAll(
+      req.user.user_id,
+      unread_only === 'true',
+    );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.findOne(+id);
+  @Get('unread-count')
+  getUnreadCount(@Request() req) {
+    return this.notificationsService.getUnreadCount(req.user.user_id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateNotificationDto: UpdateNotificationDto,
-  ) {
-    return this.notificationsService.update(+id, updateNotificationDto);
+  @Patch(':id/read')
+  markAsRead(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.notificationsService.markAsRead(req.user.user_id, id);
+  }
+
+  @Patch('read-all')
+  markAllAsRead(@Request() req) {
+    return this.notificationsService.markAllAsRead(req.user.user_id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notificationsService.remove(+id);
+  remove(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.notificationsService.remove(req.user.user_id, id);
   }
 }

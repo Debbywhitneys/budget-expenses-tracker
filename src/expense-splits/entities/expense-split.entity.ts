@@ -12,11 +12,11 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('recurring_splits')
 export class RecurringSplit {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'bigint', nullable: true, name: 'group_expense_id' })
-  groupExpenseId: number;
+  group_expense_id: number;
 
   @Column({ type: 'bigint', nullable: false, name: 'user_id' })
   user_id: number;
@@ -56,7 +56,7 @@ export class RecurringSplit {
   @JoinColumn({ name: 'group_expense_id', referencedColumnName: 'id' })
   groupExpense: GroupExpense;
 
-  @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @ManyToOne(() => User, (user) => user.expenseSplits)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 }

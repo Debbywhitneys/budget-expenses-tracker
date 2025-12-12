@@ -4,32 +4,39 @@ import {
   IsNumber,
   IsBoolean,
   IsDate,
+  IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { NotificationType } from '../entities/notification.entity';
 
-export class NotificationDto {
-  @IsNotEmpty()
+export class CreateNotificationDto {
   @IsNumber()
-  id: number;
-
   @IsNotEmpty()
-  @IsNumber()
   user_id: number;
 
-  @IsString()
-  @IsNotEmpty()
-  type?: string;
+  @IsEnum(NotificationType)
+  @IsOptional()
+  type?: NotificationType;
 
   @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
   message?: string;
 
-  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  action_url?: string;
+
   @IsBoolean()
-  isRead: boolean;
-
-  @IsNotEmpty()
-  @IsDate()
-  createdAt: Date;
+  @IsOptional()
+  isRead?: boolean;
 
   @IsDate()
+  @IsOptional()
+  @Type(() => Date)
   readAt?: Date;
 }

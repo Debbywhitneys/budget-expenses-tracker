@@ -5,18 +5,20 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('settlements')
 export class Settlement {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'bigint', nullable: false, name: 'group_id' })
   group_id: number;
 
-  @Column({ type: 'bigint', nullable: false, name: 'payer_id' })
+  @Column({ type: 'int', nullable: false, name: 'payer_id' })
   payer_id: number;
 
   @Column({ type: 'decimal', precision: 19, scale: 2, nullable: false })
@@ -52,5 +54,10 @@ export class Settlement {
 
   // Relationships
   @ManyToOne(() => Group, (group) => group.settlements)
+  @JoinColumn({ name: 'group_id', referencedColumnName: 'id' })
   group: Group;
+
+  @ManyToOne(() => User, (user) => user.settlements)
+  @JoinColumn({ name: 'payer_id', referencedColumnName: 'user_id' })
+  payer: User;
 }

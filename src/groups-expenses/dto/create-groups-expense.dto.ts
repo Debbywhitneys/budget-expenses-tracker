@@ -6,18 +6,35 @@ import {
   IsDate,
   IsBoolean,
   IsEnum,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { split_method } from '../entities/groups-expense.entity';
 
+// Interface for expense members with split information
+export class ExpenseMemberDto {
+  @IsNumber()
+  @IsNotEmpty()
+  user_id: number;
+
+  @IsNumber()
+  @IsOptional()
+  amount?: number;
+
+  @IsNumber()
+  @IsOptional()
+  percentage?: number;
+}
+
 export class CreateGroupExpenseDto {
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   group_id: number;
 
   @IsNumber()
   @IsNotEmpty()
-  paidBy: number;
+  paid_by_id: number;
 
   @IsString()
   @IsNotEmpty()
@@ -29,13 +46,13 @@ export class CreateGroupExpenseDto {
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsNotEmpty()
-  amount: number;
+  total_amount: number;
 
   @IsString()
   @IsNotEmpty()
   currency: string;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
   category_id: number;
 
@@ -43,6 +60,7 @@ export class CreateGroupExpenseDto {
   @IsNotEmpty()
   @Type(() => Date)
   expenseDate: Date;
+
   @IsString()
   @IsOptional()
   receipt_url?: string;
@@ -58,4 +76,12 @@ export class CreateGroupExpenseDto {
   @IsBoolean()
   @IsOptional()
   isSettled?: boolean;
+}
+
+// Extended DTO with members for creating group expenses
+export class CreateGroupExpenseWithMembersDto extends CreateGroupExpenseDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExpenseMemberDto)
+  members: ExpenseMemberDto[];
 }

@@ -19,10 +19,10 @@ export enum AccountType {
 
 @Entity('accounts')
 export class Account {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int', nullable: false, name: 'user_id' })
   user_id: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
@@ -60,15 +60,15 @@ export class Account {
   @Column({ type: 'bit', nullable: false, default: 1, name: 'is_active' })
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.accounts)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
   @OneToMany(() => Transaction, (transaction) => transaction.account)

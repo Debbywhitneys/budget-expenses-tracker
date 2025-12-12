@@ -6,40 +6,63 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FinancialGoalsService } from './financial-goals.service';
+import { AccessTokenGuard } from '../auth/guards/access-token.guards';
 import { CreateFinancialGoalDto } from './dto/create-financial-goal.dto';
 import { UpdateFinancialGoalDto } from './dto/update-financial-goal.dto';
 
 @Controller('financial-goals')
+@UseGuards(AccessTokenGuard)
 export class FinancialGoalsController {
-  constructor(private readonly financialGoalsService: FinancialGoalsService) {}
+  constructor(private readonly goalsService: FinancialGoalsService) {}
 
   @Post()
-  create(@Body() createFinancialGoalDto: CreateFinancialGoalDto) {
-    return this.financialGoalsService.create(createFinancialGoalDto);
+  @HttpCode(HttpStatus.CREATED)
+  create(@Request() req, @Body() createDto: CreateFinancialGoalDto) {
+    return this.goalsService.create(req.user.user_id, createDto);
   }
 
   @Get()
-  findAll() {
-    return this.financialGoalsService.findAll();
+  findAll(@Request() req) {
+    return this.goalsService.findAll(req.user.user_id);
+  }
+
+  @Get('statistics')
+  getStatistics(@Request() req) {
+    return this.goalsService.getStatistics(req.user.user_id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.financialGoalsService.findOne(+id);
+  findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.goalsService.findOne(req.user.user_id, id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
-    @Body() updateFinancialGoalDto: UpdateFinancialGoalDto,
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateFinancialGoalDto,
   ) {
-    return this.financialGoalsService.update(+id, updateFinancialGoalDto);
+    return this.goalsService.update(req.user.user_id, id, updateDto);
+  }
+
+  @Patch(':id/allocate')
+  allocateToGoal(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { amount: number },
+  ) {
+    return this.goalsService.allocateToGoal(req.user.user_id, id, body.amount);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.financialGoalsService.remove(+id);
+  remove(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.goalsService.remove(req.user.user_id, id);
   }
 }

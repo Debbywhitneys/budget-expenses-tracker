@@ -8,14 +8,10 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { FinancialGoaltype } from '../entities/financial-goal.entity';
+import { FinancialGoalType } from '../entities/financial-goal.entity';
 import { priority } from '../entities/financial-goal.entity';
 
 export class CreateFinancialGoalDto {
-  @IsNumber()
-  @IsNotEmpty()
-  user_id: number;
-
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -37,9 +33,9 @@ export class CreateFinancialGoalDto {
   @IsOptional()
   category?: string;
 
-  @IsEnum(FinancialGoaltype)
-  @IsNotEmpty()
-  FinancialGoaltype: FinancialGoaltype;
+  @IsEnum(FinancialGoalType)
+  @IsOptional()
+  financialGoalType?: FinancialGoalType;
 
   @IsEnum(priority)
   @IsOptional()

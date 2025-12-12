@@ -1,31 +1,31 @@
 import {
   IsString,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsBoolean,
   IsEnum,
   IsDate,
+  IsBoolean,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Transactiontype } from '../entities/transaction.entity';
+import { TransactionType } from '../entities/transaction.entity';
 
 export class CreateTransactionDto {
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  user_id: string;
-
-  @IsString()
-  @IsOptional()
-  amount_id: string;
+  user_id: number;
 
   @IsNumber()
   @IsOptional()
-  categor_id: number;
+  account_id?: number;
 
-  @IsEnum(Transactiontype)
+  @IsNumber()
+  @IsOptional()
+  category_id?: number;
+
+  @IsEnum(TransactionType)
   @IsNotEmpty()
-  type: Transactiontype;
+  type: TransactionType;
 
   @IsNumber()
   @IsNotEmpty()

@@ -11,7 +11,7 @@ import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Account } from '../../accounts/entities/account.entity';
 
-export enum Transactiontype {
+export enum TransactionType {
   income = 'income',
   expense = 'expense',
   transfer = 'transfer',
@@ -19,18 +19,14 @@ export enum Transactiontype {
 
 @Entity('transactions')
 export class Transaction {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'int',
-    nullable: false,
-    name: 'user_id',
-  })
+  @Column({ type: 'int', nullable: false, name: 'user_id' })
   user_id: number;
 
   @Column({
-    type: 'int',
+    type: 'bigint',
     nullable: true,
     name: 'account_id',
   })
@@ -43,9 +39,9 @@ export class Transaction {
     type: 'varchar',
     length: 50,
     nullable: false,
-    enum: Transactiontype,
+    enum: TransactionType,
   })
-  type: Transactiontype;
+  type: TransactionType;
 
   @Column({ type: 'decimal', precision: 19, scale: 2, nullable: false })
   amount: number;
@@ -74,15 +70,15 @@ export class Transaction {
   @Column({ type: 'datetime', nullable: true, name: 'end_date' })
   endDate: Date;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.transactions)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
   @ManyToOne(() => Account, (account) => account.transactions)

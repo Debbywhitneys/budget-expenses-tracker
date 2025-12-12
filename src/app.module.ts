@@ -8,8 +8,8 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { RecurringTransactionsModule } from './recurring-transactions/recurring-transactions.module';
 import { GroupsModule } from './groups/groups.module';
-import { GroupsMembersModule } from './groups-members/groups-members.module';
-import { GroupsExpensesModule } from './groups-expenses/groups-expenses.module';
+import { GroupMembersModule } from './groups-members/groups-members.module';
+import { GroupExpensesModule } from './groups-expenses/groups-expenses.module';
 import { ExpenseSplitsModule } from './expense-splits/expense-splits.module';
 import { SettlementsModule } from './settlements/settlements.module';
 import { FinancialGoalsModule } from './financial-goals/financial-goals.module';
@@ -17,6 +17,14 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { databaseConfig } from './database/database.config';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './auth/strategies/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/guards/roles.guards';
+import { AccessTokenGuard } from './auth/guards/access-token.guards';
+import { LoggerModule } from './logger/logger.module';
+
+// import { SeedModule } from './seed/seed.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,14 +40,27 @@ import { DatabaseModule } from './database/database.module';
     BudgetsModule,
     RecurringTransactionsModule,
     GroupsModule,
-    GroupsMembersModule,
-    GroupsExpensesModule,
+    GroupMembersModule,
+    GroupExpensesModule,
     ExpenseSplitsModule,
     SettlementsModule,
     FinancialGoalsModule,
     NotificationsModule,
+    AuthModule,
+    LoggerModule,
+    // SeedModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AccessTokenGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

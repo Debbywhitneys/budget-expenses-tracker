@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-export enum FinancialGoaltype {
+export enum FinancialGoalType {
   emergency_fund = 'emergency_fund',
   vacation = 'vacation',
   purchase = 'purchase',
@@ -26,10 +26,10 @@ export enum priority {
 
 @Entity('financial_goals')
 export class FinancialGoal {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'bigint', nullable: false, name: 'user_id' })
+  @Column({ type: 'int', nullable: false, name: 'user_id' })
   user_id: number;
 
   @Column({ type: 'varchar', length: 1000, nullable: false })
@@ -63,9 +63,9 @@ export class FinancialGoal {
     type: 'varchar',
     length: 50,
     nullable: true,
-    enum: FinancialGoaltype,
+    enum: FinancialGoalType,
   })
-  FinancialGoaltype: FinancialGoaltype;
+  financialGoalType: FinancialGoalType;
 
   @Column({
     type: 'varchar',
@@ -78,14 +78,14 @@ export class FinancialGoal {
   @Column({ type: 'bit', nullable: false, default: 0, name: 'is_achieved' })
   isAchieved: boolean;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.financialGoals)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 }

@@ -9,7 +9,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Budgettype } from '../entities/budget.entity';
+import { BudgetType } from '../entities/budget.entity';
 
 export class CreateBudgetDto {
   @IsNumber()
@@ -29,9 +29,9 @@ export class CreateBudgetDto {
   @IsPositive()
   amount: number;
 
-  @IsEnum(Budgettype)
+  @IsEnum(BudgetType)
   @IsNotEmpty()
-  period: Budgettype;
+  period: BudgetType;
 
   @IsDate()
   @IsNotEmpty()

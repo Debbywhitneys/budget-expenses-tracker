@@ -21,16 +21,8 @@ export enum GroupType {
 
 @Entity('groups')
 export class Group {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: false,
-    name: 'group_id',
-  })
-  group_id: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
@@ -44,7 +36,7 @@ export class Group {
     nullable: false,
     enum: GroupType,
   })
-  GroupType: GroupType;
+  groupType: GroupType;
 
   @Column({ type: 'varchar', length: 500, nullable: true, name: 'image_url' })
   imageUrl: string;

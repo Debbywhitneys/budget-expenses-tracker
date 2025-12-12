@@ -12,11 +12,21 @@ import { Budget } from '../../budgets/entities/budget.entity';
 import { FinancialGoal } from '../../financial-goals/entities/financial-goal.entity';
 import { Account } from '../../accounts/entities/account.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
+import { GroupMember } from '../../groups-members/entities/groups-member.entity';
+import { GroupExpense } from '../../groups-expenses/entities/groups-expense.entity';
+import { RecurringSplit } from '../../expense-splits/entities/expense-split.entity';
+import { RecurringTransaction } from '../../recurring-transactions/entities/recurring-transaction.entity';
+import { Settlement } from '../../settlements/entities/settlement.entity';
+
+export enum userRole {
+  SYSTEM_ADMIN = 'system_admin',
+  USER = 'user',
+}
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  user_id: number;
 
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
@@ -24,38 +34,28 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: false })
   passwordHash: string;
 
-  @Column({
-    type: 'bigint',
-    nullable: false,
-    unique: true,
-    name: 'user_id',
-  })
-  user_id: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, name: 'username' })
-  username: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, name: 'fullName' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   fullName: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  phoneNumber?: string;
 
   @Column({
     type: 'varchar',
-    length: 50,
-    nullable: false,
-    name: 'phone_number',
+    enum: userRole,
+    default: userRole.USER,
   })
-  phoneNumber: string;
+  userRole: userRole;
 
-  @Column({ type: 'bit', nullable: false, default: 0, name: 'is_system_admin' })
-  isSystemAdmin: boolean;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  hashedRefreshedToken?: string | null;
 
   @Column({
     type: 'varchar',
     length: 500,
     nullable: true,
-    name: 'profile_picture_url',
   })
-  profile_picture_url: string;
+  profilePictureUrl: string;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   currency: string;
@@ -63,10 +63,10 @@ export class User {
   @Column({ type: 'varchar', length: 100, nullable: true })
   timezone: string;
 
-  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   // Relationships
@@ -87,4 +87,19 @@ export class User {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => GroupMember, (member) => member.user)
+  groupMembers: GroupMember[];
+
+  @OneToMany(() => GroupExpense, (expense) => expense.paidBy)
+  groupExpenses: GroupExpense[];
+
+  @OneToMany(() => RecurringSplit, (split) => split.user)
+  expenseSplits: RecurringSplit[];
+
+  @OneToMany(() => RecurringTransaction, (recurring) => recurring.user)
+  recurringTransactions: RecurringTransaction[];
+
+  @OneToMany(() => Settlement, (settlement) => settlement.payer)
+  settlements: Settlement[];
 }
